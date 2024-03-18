@@ -394,32 +394,87 @@ function group(array, keySelector, valueSelector) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  result: '',
+  order: 0,
+
+  isCorrectOrder(order) {
+    if (this.order > order) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    if (order === this.order && [1, 2, 6].includes(order)) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    this.isCorrectOrder(1);
+    const obj = { ...cssSelectorBuilder };
+    obj.result = this.result + value;
+    obj.order = 1;
+
+    return obj;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    this.isCorrectOrder(2);
+    const obj = { ...cssSelectorBuilder };
+    obj.result = `${this.result}#${value}`;
+    obj.order = 2;
+
+    return obj;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    this.isCorrectOrder(3);
+    const obj = { ...cssSelectorBuilder };
+    obj.result = `${this.result}.${value}`;
+    obj.order = 3;
+
+    return obj;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    this.isCorrectOrder(4);
+    const obj = { ...cssSelectorBuilder };
+    obj.result = `${this.result}[${value}]`;
+    obj.order = 4;
+
+    return obj;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    this.isCorrectOrder(5);
+    const obj = { ...cssSelectorBuilder };
+    obj.result = `${this.result}:${value}`;
+    obj.order = 5;
+
+    return obj;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    this.isCorrectOrder(6);
+    const obj = { ...cssSelectorBuilder };
+    obj.result = `${this.result}::${value}`;
+    obj.order = 6;
+
+    return obj;
+  },
+
+  combine(selector1, combinator, selector2) {
+    const obj = { ...cssSelectorBuilder };
+    obj.result = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+
+    return obj;
+  },
+
+  stringify() {
+    const { result } = this;
+    this.result = '';
+    return result;
   },
 };
 
